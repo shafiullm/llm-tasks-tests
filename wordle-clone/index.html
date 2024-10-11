@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Wordle Clone</title>
+    <style>
+      /* Styling (can be improved) */
+      #game {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: sans-serif;
+      }
+      .row {
+        display: flex;
+      }
+      .tile {
+        width: 50px;
+        height: 50px;
+        border: 2px solid gray;
+        margin: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2em;
+        text-transform: uppercase;
+      }
+      .correct {
+        background-color: lightgreen;
+      }
+      .present {
+        background-color: yellow;
+      }
+      .absent {
+        background-color: lightgray;
+      }
+      #keyboard button {
+        width: 40px;
+        height: 40px;
+        margin: 5px;
+        font-size: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game">
+      <h1>Wordle</h1>
+      <div id="board"></div>
+      <div id="keyboard"></div>
+      <button onclick="newGame()">New Game</button>
+      <span id="difficulty"></span>
+    </div>
+
+    <script>
+      const words = ["apple", "crane", "table", "audio", "water", "melon"]; // Add more 5-letter words
+      let secretWord;
+      let currentRow = 0;
+      let currentTile = 0;
+      const maxRows = 6; // Standard Wordle rows
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let difficulty = "easy"; // Default difficulty
+      const difficulties = {
+        easy: words,
+        medium: ["bound", "faith", "loyal", "might", "peace"], // Example medium words, add more as needed
+        hard: ["blitz", "crypt", "glyph", "juxta", "nymph"], // Example hard words, add more
+      };
+
+      function createBoard() {
+        const board = document.getElementById("board");
+        for (let i = 0; i < maxRows; i++) {
+          let row = document.createElement("div");
+          row.className = "row";
+          for (let j = 0; j < 5; j++) {
+            let tile = document.createElement("div");
+            tile.className = "tile";
+            tile.id = `tile-${i}-${j}`;
+            row.appendChild(tile);
+          }
+          board.appendChild(row);
+        }
+      }
+
+      function createKeyboard() {
+        const keyboard = document.getElementById("keyboard");
+        let keys = document.createElement("div");
+        alphabet.split("").forEach((letter) => {
+          let button = document.createElement("button");
+          button.textContent = letter;
+          button.onclick = () => addLetter(letter);
+          keys.appendChild(button);
+        });
+
+        let enterButton = document.createElement("button");
+        enterButton.textContent = "Enter";
+        enterButton.onclick = checkGuess;
+        keys.appendChild(enterButton);
+
+        let backspaceButton = document.createElement("button");
+        backspaceButton.textContent = "⌫";
+        backspaceButton.onclick = deleteLetter;
+        keys.appendChild(backspaceButton);
+
+        keyboard.appendChild(keys);
+      }
+
+      function newGame() {
+        // Cycle through difficulties
+        if (difficulty === "easy") difficulty = "medium";
+        else if (difficulty === "medium") difficulty = "hard";
+        else difficulty = "easy";
+
+        document.getElementById("difficulty").textContent =
+          "(" + difficulty + ")";
+
+        secretWord =
+          difficulties[difficulty][
+            Math.floor(Math.random() * difficulties[difficulty].length)
+          ];
+        currentRow = 0;
+        currentTile = 0;
+        const tiles = document.querySelectorAll(".tile");
+        tiles.forEach((tile) => {
+          tile.textContent = "";
+          tile.classList.remove("correct", "present", "absent");
+        });
+      }
+
+      function addLetter(letter) {
+        if (currentTile < 5 && currentRow < maxRows) {
+          const tile = document.getElementById(
+            `tile-${currentRow}-${currentTile}`
+          );
+          tile.textContent = letter;
+          currentTile++;
+        }
+      }
+
+      function deleteLetter() {
+        if (currentTile > 0) {
+          currentTile--;
+          const tile = document.getElementById(
+            `tile-${currentRow}-${currentTile}`
+          );
+          tile.textContent = "";
+        }
+      }
+
+      function checkGuess() {
+        if (currentTile === 5) {
+          const guess = getCurrentGuess();
+          if (!difficulties[difficulty].includes(guess.toLowerCase())) {
+            alert("Not in word list!"); // Or a nicer notification
+            return;
+          }
+
+          colorTiles(guess);
+
+          if (guess === secretWord) {
+            alert("You win!");
+            return; // Prevent further input after winning
+          }
+
+          currentRow++;
+          currentTile = 0;
+          if (currentRow === maxRows) {
+            alert(`You lose! The word was ${secretWord}`); // Game Over
+          }
+        }
+      }
+
+      function getCurrentGuess() {
+        let guess = "";
+        for (let i = 0; i < 5; i++) {
+          guess += document.getElementById(
+            `tile-${currentRow}-${i}`
+          ).textContent;
+        }
+        return guess;
+      }
+
+      function colorTiles(guess) {
+        let secretLetters = secretWord.split("");
+        for (let i = 0; i < 5; i++) {
+          const tile = document.getElementById(`tile-${currentRow}-${i}`);
+          const letter = guess[i];
+
+          if (letter === secretLetters[i]) {
+            tile.classList.add("correct");
+            secretLetters[i] = null; // prevent double marking
+          }
+        }
+
+        for (let i = 0; i < 5; i++) {
+          const tile = document.getElementById(`tile-${currentRow}-${i}`);
+          const letter = guess[i];
+
+          if (!tile.classList.contains("correct")) {
+            // Only check if not already marked correct
+            if (secretLetters.includes(letter)) {
+              tile.classList.add("present");
+              secretLetters[secretLetters.indexOf(letter)] = null; // prevent double marking present
+            } else {
+              tile.classList.add("absent");
+            }
+          }
+        }
+      }
+
+      createBoard();
+      createKeyboard();
+      newGame(); // Start the first game
+    </script>
+  </body>
+</html>
