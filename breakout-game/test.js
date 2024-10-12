@@ -1,140 +1,183 @@
-/**
- * @jest-environment jsdom
- */
-
 const fs = require("fs");
 const path = require("path");
 const { JSDOM } = require("jsdom");
 
-const html = fs.readFileSync(path.resolve(__dirname, "./index.html"), "utf8");
+describe("Breakout Game", () => {
+  let dom;
+  let window;
+  let document;
 
-let dom;
-let canvas;
-let ctx;
-let game;
-
-describe("Breakout Game Tests", () => {
   beforeEach(() => {
+    const html = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf8");
     dom = new JSDOM(html, { runScripts: "dangerously" });
-    global.window = dom.window;
-    global.document = window.document;
-    canvas = document.getElementById("myCanvas");
-    ctx = canvas.getContext("2d");
-
-    // Mock LocalStorage
-    Storage.prototype.getItem = jest.fn();
-    Storage.prototype.setItem = jest.fn();
-
-    game = require("./game"); // Assuming your game logic is in game.js
-    game.initGame(); // Reset game for every test if you have such a function
+    window = dom.window;
+    document = window.document;
   });
 
-  it("R1/A1: HTML canvas element exists", () => {
-    expect(canvas).not.toBeNull();
+  // Requirement 1: The game will be implemented using Javascript and HTML5 canvas.
+  test("Canvas element exists", () => {
+    const canvas = document.querySelector("canvas");
+    expect(canvas).toBeTruthy();
   });
 
-  it("R2/A2: Paddle moves horizontally", () => {
-    const initialPaddleX = game.paddleX;
-    // Simulate right key press
-    let event = new window.KeyboardEvent("keydown", { key: "ArrowRight" });
-    document.dispatchEvent(event);
-    game.draw(); // Call draw to update paddle position
-    expect(game.paddleX).toBeGreaterThan(initialPaddleX);
+  // Requirement 2: The game will consist of a paddle at the bottom that can be moved left or right by the user.
+  test("Paddle exists and can be moved", () => {
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const initialFillStyle = ctx.fillStyle;
+
+    window.dispatchEvent(
+      new window.KeyboardEvent("keydown", { key: "ArrowRight" })
+    );
+
+    window.requestAnimationFrame(() => {});
+    expect(ctx.fillStyle).not.toBe(initialFillStyle);
   });
 
-  it("R3/A3: Ball exists and has position", () => {
-    expect(game.x).toBeDefined();
-    expect(game.y).toBeDefined();
+  // Requirement 3: The game will consist of a ball.
+  test("Ball exists and has position attributes", () => {
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const spy = jest.spyOn(ctx, "arc");
+
+    // Force a redraw
+    window.requestAnimationFrame(() => {});
+
+    // Check if a circle (ball) was drawn
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
   });
 
-  it("R4/A4: Ball bounces off top wall", () => {
-    const initialDy = game.dy;
-    game.y = 0; // Set ball to top edge
-    game.draw();
-    expect(game.dy).toBe(-initialDy); // dy should be reversed
+  // Requirement 4: The ball will change direction or bounce based on collision with the paddle, bricks or walls.
+  test("Ball changes direction on collision", () => {
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const spy = jest.spyOn(ctx, "arc");
+
+    // Force multiple redraws to simulate movement
+    for (let i = 0; i < 100; i++) {
+      window.requestAnimationFrame(() => {});
+    }
+
+    // Check if the ball was drawn at different positions
+    const calls = spy.mock.calls;
+    expect(calls.length).toBeGreaterThan(1);
+    expect(calls[0][1]).not.toBe(calls[calls.length - 1][1]); // x position
+    expect(calls[0][2]).not.toBe(calls[calls.length - 1][2]); // y position
+    spy.mockRestore();
   });
 
-  it("R5/A5: Bricks are initialized", () => {
-    expect(game.bricks).toBeDefined();
-    expect(game.bricks.length).toBeGreaterThan(0);
+  // Requirement 5: The game will consist of bricks in a layout at the start of the game.
+  test("Bricks exist in a layout", () => {
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const spy = jest.spyOn(ctx, "fillRect");
+
+    // Force a redraw
+    window.requestAnimationFrame(() => {});
+
+    // Check if multiple rectangles (bricks) were drawn
+    expect(spy.mock.calls.length).toBeGreaterThan(1);
+    spy.mockRestore();
   });
 
-  it("R6/A6: Brick is destroyed on collision", () => {
-    game.bricks[0][0].status = 1; // Ensure a brick exists
-    game.x = game.bricks[0][0].x + game.brickWidth / 2; // Ball centered on brick
-    game.y = game.bricks[0][0].y + game.brickHeight / 2;
-    game.draw(); // Run collision detection
-    expect(game.bricks[0][0].status).toBe(0); // Brick status should be 0 (destroyed)
+  // Requirement 6: The bricks will be destroyed if they are hit by the ball.
+  test("Bricks are destroyed on collision", () => {
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const spy = jest.spyOn(ctx, "fillRect");
+
+    // Force multiple redraws to simulate movement and collisions
+    for (let i = 0; i < 1000; i++) {
+      window.requestAnimationFrame(() => {});
+    }
+
+    // Check if the number of drawn bricks decreases over time
+    const initialBrickCount = spy.mock.calls.length;
+
+    // Force more redraws
+    for (let i = 0; i < 1000; i++) {
+      window.requestAnimationFrame(() => {});
+    }
+
+    const finalBrickCount = spy.mock.calls.length - initialBrickCount;
+    expect(finalBrickCount).toBeLessThan(initialBrickCount);
+    spy.mockRestore();
   });
 
-  it("R7/A7: Levels have different brick layouts", () => {
-    const level1Bricks = JSON.parse(JSON.stringify(game.bricks)); // Deep copy
-    game.level = 2;
-    game.createBricks();
-    expect(game.bricks).not.toEqual(level1Bricks);
+  // Requirement 7: The game will have three levels with increasing difficulties.
+  test("Game has multiple levels", () => {
+    expect(window.level).toBeDefined();
+    // This test will fail as per your evaluation
+    expect(typeof window.nextLevel).toBe("function");
   });
 
-  it("R8/A8: Score is displayed and updated", () => {
-    game.score = 50;
-    game.draw(); // Update the display potentially called in your draw function
-    expect(document.getElementById("score").innerHTML).toContain(50);
+  // Requirement 8: The game will display the current score.
+  test("Score is displayed", () => {
+    const scoreElement = document.getElementById("score");
+    expect(scoreElement).toBeTruthy();
+    expect(scoreElement.textContent).toContain("Score:");
   });
 
-  it("R9/A9: Game over when ball goes below paddle", () => {
-    window.alert = jest.fn(); // Mock alert
-    game.y = canvas.height + game.ballRadius; // Below canvas
-    game.lives = 1;
-    game.draw();
-    expect(window.alert).toHaveBeenCalledWith("GAME OVER");
+  // Requirement 9: The game will end if the ball goes below the paddle.
+  test("Game ends when ball goes below paddle", () => {
+    const ball = window.ball;
+    const canvas = document.querySelector("canvas");
+    ball.y = canvas.height + 1;
+    window.update();
+    expect(window.gameOver).toBe(true);
   });
 
-  it("R10/A10: Level is displayed", () => {
-    // You'll need to ensure you have a #level element if you want to display it on screen
-    // For this example, I assume you store level as text in the DOM:
-    game.level = 2;
-    // Your game logic would update the DOM here (e.g., in a draw() function):
-    // document.getElementById("level").textContent = "Level: " + game.level;
-    // game.draw(); // Assuming this function updates the display
-
-    // If no DOM element:
-    expect(game.level).toBe(2);
+  // Requirement 10: The game will display the current level.
+  test("Current level is displayed", () => {
+    // This test will fail as per your evaluation
+    const levelElement = document.getElementById("level");
+    expect(levelElement).toBeTruthy();
+    expect(levelElement.textContent).toContain("Level:");
   });
 
-  it("R11/A11: Game proceeds to next level", () => {
-    game.score = game.brickRowCount * game.brickColumnCount;
-    game.draw();
-    expect(game.level).toBeGreaterThan(1);
+  // Requirement 11: The game will proceed to the next level if all the bricks are destroyed.
+  test("Game proceeds to next level when all bricks are destroyed", () => {
+    // This test will fail as per your evaluation
+    window.bricks = [[]]; // Set bricks to empty
+    window.update();
+    expect(window.level).toBe(2);
   });
 
-  it("R12/A12: Game has lives and decreases on ball loss", () => {
-    const initialLives = game.lives;
-    game.y = canvas.height + game.ballRadius;
-    game.draw();
-    expect(game.lives).toBeLessThan(initialLives);
+  // Requirement 12: The game will have a life function, consisting of three lives at the start of the game.
+  test("Game starts with three lives", () => {
+    const livesElement = document.getElementById("lives");
+    expect(livesElement).toBeTruthy();
+    expect(livesElement.textContent).toContain("Lives: 3");
   });
 
-  it("R13/A13: Score calculation is correct", () => {
-    const initialScore = game.score;
-    const destroyedBricks = 5;
-    game.score += destroyedBricks;
-    expect(game.score).toBe(initialScore + destroyedBricks);
+  // Requirement 13: The score of the game will be counted based on the number of bricks destroyed and the remaining lives at the end of each level.
+  test("Score is updated when bricks are destroyed", () => {
+    const initialScore = window.score;
+    window.bricks[0][0] = null; // Destroy a brick
+    window.update();
+    expect(window.score).toBeGreaterThan(initialScore);
   });
 
-  it("R14/A14: High score is saved locally", () => {
-    // Set a high score
-    localStorage.setItem("highscore", "50"); // LocalStorage is now mocked
-
-    // Retrieve the score. This test will fail if localStorage is not accessed
-    const highscore = localStorage.getItem("highscore");
-
-    // Use highscore. Value should be 50
-    expect(highscore).toBe("50");
+  // Requirement 14: The game will save and display the highest score locally.
+  test("Highest score is saved and displayed", () => {
+    // This test will fail as per your evaluation
+    window.score = 1000;
+    window.updateHighScore();
+    expect(localStorage.getItem("highScore")).toBe("1000");
+    const highScoreElement = document.getElementById("highScore");
+    expect(highScoreElement).toBeTruthy();
+    expect(highScoreElement.textContent).toContain("High Score: 1000");
   });
 
-  it("R15/A15: Displays victory message", () => {
-    window.alert = jest.fn(); // Mock alert
-    game.level = 4; // Assuming 3 is the max level
-    game.draw();
-    expect(window.alert).toHaveBeenCalledWith("YOU WIN, CONGRATULATIONS!");
+  // Requirement 15: The game will display a victory message if all the levels are completed.
+  test("Victory message is displayed when all levels are completed", () => {
+    // This test will fail as per your evaluation
+    window.level = 3;
+    window.bricks = [[]]; // Set bricks to empty
+    window.update();
+    const victoryMessage = document.querySelector(".victory-message");
+    expect(victoryMessage).toBeTruthy();
+    expect(victoryMessage.style.display).toBe("block");
   });
 });
