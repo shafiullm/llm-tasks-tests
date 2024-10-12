@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pixel Art Editor</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+      }
+      #canvasContainer {
+        display: inline-block;
+        margin-right: 20px;
+        position: relative;
+      }
+      canvas {
+        border: 1px solid black;
+        image-rendering: pixelated;
+        cursor: crosshair;
+      }
+      #toolbox {
+        display: flex;
+        flex-direction: column;
+      }
+      .color-box {
+        width: 20px;
+        height: 20px;
+        border: 1px solid black;
+        cursor: pointer;
+        display: inline-block;
+        margin: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvasContainer">
+      <canvas id="pixelCanvas"></canvas>
+    </div>
+
+    <div id="toolbox">
+      <h2>Tools</h2>
+      <button id="brushTool">Brush</button>
+      <button id="eraserTool">Eraser</button>
+      <button id="lineTool">Line</button>
+      <button id="rectTool">Rectangle</button>
+      <button id="fillTool">Fill Bucket</button>
+
+      <h2>Colors</h2>
+      <div id="colorPalette"></div>
+
+      <h2>Canvas Size</h2>
+      Width: <input type="number" id="canvasWidth" value="32" min="1" /> Height:
+      <input type="number" id="canvasHeight" value="32" min="1" />
+      <button id="resizeCanvas">Resize</button>
+
+      <h2>Import/Export</h2>
+      <input type="file" id="fileInput" />
+      <button id="uploadButton">Upload</button>
+      <button id="downloadButton">Download</button>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("pixelCanvas");
+      const ctx = canvas.getContext("2d");
+      const colorPalette = document.getElementById("colorPalette");
+      const canvasWidthInput = document.getElementById("canvasWidth");
+      const canvasHeightInput = document.getElementById("canvasHeight");
+      //... (rest of the JavaScript code will be added below)
+      let canvasWidth = 32;
+      let canvasHeight = 32;
+      let pixelSize = 10;
+      let drawing = false;
+      let currentTool = "brush";
+      let currentColor = "#000000";
+
+      function initializeCanvas() {
+        canvas.width = canvasWidth * pixelSize;
+        canvas.height = canvasHeight * pixelSize;
+        ctx.imageSmoothingEnabled = false; // For crisp pixel art
+        drawGrid();
+      }
+
+      function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let x = 0; x < canvasWidth; x++) {
+          for (let y = 0; y < canvasHeight; y++) {
+            ctx.strokeStyle = "#ddd";
+            ctx.strokeRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+          }
+        }
+      }
+
+      // ... (Add event listeners, tool functions, color palette, download/upload, etc. below.  See next code blocks for these sections.)
+
+      initializeCanvas();
+    </script>
+  </body>
+</html>

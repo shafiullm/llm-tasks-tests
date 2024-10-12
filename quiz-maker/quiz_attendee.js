@@ -1,3 +1,5 @@
+// quiz_attendee.js (for quiz taking)
+
 let currentQuestion = 0;
 let score = 0;
 let timeLeft;
