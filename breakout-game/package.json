@@ -1,0 +1,19 @@
+{
+  "name": "wordle-clone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^27.0.6",
+    "jest-environment-jsdom": "^27.0.6",
+    "jsdom": "^16.6.0",
+    "text-encoding": "^0.7.0",
+    "util": "^0.12.5"
+  }
+}
