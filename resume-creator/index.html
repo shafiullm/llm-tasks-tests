@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Builder</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js" defer></script>
+  </head>
+
+  <body>
+    <div id="resumeBuilder">
+      <h1>Resume Builder</h1>
+
+      <div id="inputForm">
+        <button onclick="addSection('workExperience')">
+          Add Work Experience
+        </button>
+        <button onclick="addSection('education')">Add Education</button>
+        <button onclick="addSection('skills')">Add Skills</button>
+        <button onclick="addSection('custom')">Add Custom Section</button>
+
+        <div id="sectionsContainer"></div>
+      </div>
+
+      <div id="templateOptions">
+        <h2>Select a Template:</h2>
+        <select id="templateSelect">
+          <option value="template1">Template 1</option>
+          <option value="template2">Template 2</option>
+          <option value="template3">Template 3</option>
+        </select>
+
+        <h2>Select a Color Scheme:</h2>
+        <select id="colorSchemeSelect">
+          <option value="default">Default</option>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+        </select>
+      </div>
+      <button id="generateResume">Generate Resume</button>
+
+      <div id="resumeOutput"></div>
+    </div>
+  </body>
+</html>

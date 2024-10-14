@@ -1,0 +1,36 @@
+/* style.css */
+body {
+  font-family: sans-serif;
+  margin: 20px;
+}
+#resumeBuilder > div {
+  margin-bottom: 1em;
+}
+
+.resume {
+  border: 1px solid black;
+  padding: 20px;
+  width: 80%;
+  margin: 0 auto; /* Center the resume */
+}
+.template1 {
+  /* Styles for template 1 */
+}
+
+.template2 {
+  /* Styles for template 2 */
+}
+
+.template3 {
+  /* Styles for template 3 */
+}
+
+.default {
+  /* Default color scheme */
+}
+.blue {
+  /* Blue color scheme */
+}
+.green {
+  /* Green color scheme */
+}
